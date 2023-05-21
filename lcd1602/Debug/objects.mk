@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -llibc.a
+LIBS := -llibc.a -l"C:/ti/tivaware_c_series_2_1_4_178"
 

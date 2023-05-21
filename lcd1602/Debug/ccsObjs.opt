@@ -2,3 +2,4 @@
 "./tm4c123gh6pm_startup_ccs.obj"
 "../tm4c123gh6pm.cmd"
 -llibc.a
+-l"C:/ti/tivaware_c_series_2_1_4_178"

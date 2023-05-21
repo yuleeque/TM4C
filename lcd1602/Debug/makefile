@@ -15,6 +15,7 @@ ORDERED_OBJS += \
 "../tm4c123gh6pm.cmd" \
 $(GEN_CMDS__FLAG) \
 -llibc.a \
+-l"C:/ti/tivaware_c_series_2_1_4_178" \
 
 -include ../makefile.init
 

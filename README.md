@@ -1,6 +1,2 @@
 # tm4c
  
-Tips
-
-- When programming the 123G, always place an infinite loop (such as while(1) ; ) at the end of the main function. If no infinite loop exists, undefined behavior can occur. This is due (in part) to the fact that the peripherals on the MCU can act independently of the linear execution of the code, and if the main function ends in the middle of peripheral activity, that activity can be interrupted (though there may be other reasons for this undefined behavior). In addition, interrupts will not execute properly if the main function is allowed to end.
-- The ‘ConfigureUART()’ function found in TI’s ‘hello’ example project (among others) is very useful (combined with TeraTerm) for outputting simple debugging messages during application development. This function sets up the UART 0 peripheral to work with TI’s ‘uartstdio’ library, which provides access to the ‘UARTprintf()’ function. This functions much like the C standard I/O ‘printf() 2’ function, and allows you to easily print variables like strings and integers to the serial terminal.

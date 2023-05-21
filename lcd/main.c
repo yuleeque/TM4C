@@ -37,6 +37,7 @@ int main(void)
     GPIO_PORTF_PUR_R = 0x11;
     GPIO_PORTF_DEN_R = 0x1F;
 
+
     while(1){
         SW1_state = GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_0);
         SW2_state = GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_1);;

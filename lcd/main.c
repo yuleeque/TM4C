@@ -10,8 +10,7 @@
 
 #include "inc/tm4c123gh6pm.h"
 
-#define delay1 100000
-
+#define delay1 10000
 
 
 #define RS GPIO_PIN_0              // 0x00000001  // GPIO pin 0
@@ -24,18 +23,67 @@
 #define D7 GPIO_PIN_7              // 0x00000080  // GPIO pin 7
 
 
+/*TODO: extend to epecify any Port later*/
+int LCD_cmd(uint32_t pins, uint32_t command){
+
+    GPIOPinWrite(GPIO_PORTB_BASE, pins,  command ); // /*unused GPIO_PIN_3 here between D4 and EN*/
+    SysCtlDelay(delay1);
+    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
+    SysCtlDelay(delay1);
+    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
+    SysCtlDelay(delay1);
+
+    return 0;
+}
+
+
+
+/*
+ * RS 0 inst, 1 data
+ * RW 0 write, 1 read
+ * */
+
+int LCD_init(){
+    /*power supply on*/                         //HD44780U is initialized by the internal reset circuit.
+
+/* Function set */
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x20);     //This instruction completes with one write.
+/* Function set */
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x20);     //Set MSB 4 bits.
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x00);     //Set LSB 4 bits.
+
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x20);
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x00);
+
+/* Cursor or display shift*/
+//    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x10);
+//    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0xC0);
+
+
+/* Clear display */
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x00);
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x10);
+
+/* Return home */
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x00);
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x20);
+
+/* Display on */
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x00);
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0xF0);
+
+/* Entry mode on */
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x00);
+    LCD_cmd(D7|D6|D5|D4|  EN|RW|RS,  0x60);
+
+    return 0;
+}
+
 int main(void)
 {
     SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN | SYSCTL_XTAL_16MHZ);
 
-//    // PortF: SW1, SW2 in, RGB LED out
-//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
-//    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
-//    GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, GPIO_PIN_0|GPIO_PIN_4);
-//
-//    // Port B: all 8 pins out
-//    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-//    GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, 0xFF);
+
 
     int SW1_state = 0;
     int SW2_state = 0;
@@ -45,7 +93,7 @@ int main(void)
     //Init PortF
     //Register 60: General-Purpose Input/Output Run Mode Clock Gating Control (RCGCGPIO), offset 0x608
     SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R5;    // 5 bits in total for Ports: F(5), E(4), D(3), C(2), B(1), A(0)
-    SysCtlDelay(50000);
+    SysCtlDelay(500000);
     GPIO_PORTF_LOCK_R = 0x4C4F434B;     //Register 19: GPIO Lock (GPIOLOCK), offset 0x520
     GPIO_PORTF_CR_R = 0x1F;             //Register 20: GPIO Commit (GPIOCR), offset 0x524
                                         //  1==The corresponding GPIOAFSEL, GPIOPUR, GPIOPDR, or GPIODEN bits can be written.
@@ -61,7 +109,7 @@ int main(void)
     //Init PortB  (PB7 is ON but not used yet. Disable when all done.)
     //Register 60: General-Purpose Input/Output Run Mode Clock Gating Control (RCGCGPIO), offset 0x608
     SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R1;
-    SysCtlDelay(50000);
+    SysCtlDelay(500000);
     GPIO_PORTB_LOCK_R = 0x4C4F434B;     //Register 19: GPIO Lock (GPIOLOCK), offset 0x520
     GPIO_PORTB_CR_R = 0x7F;             //Register 20: GPIO Commit (GPIOCR), offset 0x524
                                         //  1==The corresponding GPIOAFSEL, GPIOPUR, GPIOPDR, or GPIODEN bits can be written.
@@ -71,157 +119,15 @@ int main(void)
     GPIO_PORTB_AFSEL_R = 0x00;          //Register 10: GPIO Alternate Function Select (GPIOAFSEL), offset 0x420
     GPIO_PORTB_PUR_R = 0xFF;//or 0x7F   //Register 15: GPIO Pull-Up Select (GPIOPUR), offset 0x510
     GPIO_PORTB_DEN_R = 0xFF;            //Register 18: GPIO Digital Enable (GPIODEN), offset 0x51C
-
-
-    //Init LCD
     SysCtlDelay(500000);
 
-    // Set to 4-bit operation
-    GPIOPinWrite(GPIO_PORTB_BASE, RS,  0x00 ); // 0 for instructions, 1 for data
-    GPIOPinWrite(GPIO_PORTB_BASE, RW,  0x00 ); // write
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 ); // off
-    SysCtlDelay(delay1);
-    //
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x20 ); // here D3, D2, D1 and D0 are also read but as 0s (since tied to GND)
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-
-
-    // run func the 2nd time (according to datasheet: Table 12)
-    GPIOPinWrite(GPIO_PORTB_BASE, RS,  0x00 ); // 0 for instructions, 1 for data
-    GPIOPinWrite(GPIO_PORTB_BASE, RW,  0x00 ); // write
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 ); // off
-    SysCtlDelay(delay1);
-    //
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x20 ); // here D3, D2, D1 and D0 are also read but as 0s (since tied to GND)
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x00 ); // here D3, D2, D1 and D0 are also read but as 0s (since tied to GND)
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-
-
-
-
-    // 0000 0001   - clear display
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x00 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-    //
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x10 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-
-
-
-
-    // 0000 0010   - return home
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x00 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-    //
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x20 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-
-
-
-
-
-    // 0000 0110   - entry mode on
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x00 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-    //
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x60 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-
-
-
-
-    // 0000 1111   - 1, display on, cursor on, blink on
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x00 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-    //
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0xF0 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-
-
-
-
-
-
-
+    //Init LCD
+    LCD_init();
     GPIOPinWrite(GPIO_PORTB_BASE, RS,  0x01 ); // 0 for instructions, 1 for data
-    // 0100 1000   - 'H'
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x40 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-    //
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x80 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-
-
-    // 0100 1001   - 'i'
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x40 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-    //
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x90 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-
-
-
+    LCD_cmd(D7|D6|D5|D4,  0x40);
+    LCD_cmd(D7|D6|D5|D4,  0x80);
+    LCD_cmd(D7|D6|D5|D4,  0x40);
+    LCD_cmd(D7|D6|D5|D4,  0x90);
 
 
 

@@ -10,7 +10,7 @@
 #include <lcd.h>
 
 
-void LCD_init(){
+void LCD_init2(){
 
 }
 

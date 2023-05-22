@@ -90,6 +90,28 @@ int main(void)
     SysCtlDelay(delay1);
 
 
+    // run func the 2nd time (according to datasheet: Table 12)
+    GPIOPinWrite(GPIO_PORTB_BASE, RS,  0x00 ); // 0 for instructions, 1 for data
+    GPIOPinWrite(GPIO_PORTB_BASE, RW,  0x00 ); // write
+    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 ); // off
+    SysCtlDelay(delay1);
+    //
+    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x20 ); // here D3, D2, D1 and D0 are also read but as 0s (since tied to GND)
+    SysCtlDelay(delay1);
+    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
+    SysCtlDelay(delay1);
+    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
+    SysCtlDelay(delay1);
+    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x00 ); // here D3, D2, D1 and D0 are also read but as 0s (since tied to GND)
+    SysCtlDelay(delay1);
+    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
+    SysCtlDelay(delay1);
+    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
+    SysCtlDelay(delay1);
+
+
+
+
     // 0000 0001   - clear display
     GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x00 );
     SysCtlDelay(delay1);
@@ -104,6 +126,8 @@ int main(void)
     SysCtlDelay(delay1);
     GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
     SysCtlDelay(delay1);
+
+
 
 
     // 0000 0010   - return home
@@ -122,6 +146,27 @@ int main(void)
     SysCtlDelay(delay1);
 
 
+
+
+
+    // 0000 0110   - entry mode on
+    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x00 );
+    SysCtlDelay(delay1);
+    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
+    SysCtlDelay(delay1);
+    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
+    SysCtlDelay(delay1);
+    //
+    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x60 );
+    SysCtlDelay(delay1);
+    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
+    SysCtlDelay(delay1);
+    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
+    SysCtlDelay(delay1);
+
+
+
+
     // 0000 1111   - 1, display on, cursor on, blink on
     GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x00 );
     SysCtlDelay(delay1);
@@ -136,6 +181,11 @@ int main(void)
     SysCtlDelay(delay1);
     GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
     SysCtlDelay(delay1);
+
+
+
+
+
 
 
     GPIOPinWrite(GPIO_PORTB_BASE, RS,  0x01 ); // 0 for instructions, 1 for data
@@ -163,13 +213,12 @@ int main(void)
     GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
     SysCtlDelay(delay1);
     //
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x80 );
+    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  0x90 );
     SysCtlDelay(delay1);
     GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
     SysCtlDelay(delay1);
     GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
     SysCtlDelay(delay1);
-
 
 
 

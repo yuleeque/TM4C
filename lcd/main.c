@@ -38,19 +38,17 @@ void PortF_init(void){
 
 
 void PortB_init(void){
-    //Init PortB  (PB7 is ON but not used yet. Disable when all done.)
-    //Register 60: General-Purpose Input/Output Run Mode Clock Gating Control (RCGCGPIO), offset 0x608
+    //Init PortB  (PB3 is ON but not used at the moment)
     SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R1;
     SysCtlDelay(delay1);
-    GPIO_PORTB_LOCK_R = 0x4C4F434B;     //Register 19: GPIO Lock (GPIOLOCK), offset 0x520
-    GPIO_PORTB_CR_R = 0x7F;             //Register 20: GPIO Commit (GPIOCR), offset 0x524
-                                        //  1==The corresponding GPIOAFSEL, GPIOPUR, GPIOPDR, or GPIODEN bits can be written.
-    GPIO_PORTB_AMSEL_R = 0x80;          //Register 21: GPIO Analog Mode Select (GPIOAMSEL), offset 0x528
-    GPIO_PORTB_PCTL_R = 0x00000000;     //Register 22: GPIO Port Control (GPIOPCTL), offset 0x52C
-    GPIO_PORTB_DIR_R = 0xFF;            //Register 2: GPIO Direction (GPIODIR), offset 0x400
-    GPIO_PORTB_AFSEL_R = 0x00;          //Register 10: GPIO Alternate Function Select (GPIOAFSEL), offset 0x420
-    GPIO_PORTB_PUR_R = 0xFF;//or 0x7F   //Register 15: GPIO Pull-Up Select (GPIOPUR), offset 0x510
-    GPIO_PORTB_DEN_R = 0xFF;            //Register 18: GPIO Digital Enable (GPIODEN), offset 0x51C
+    GPIO_PORTB_LOCK_R = 0x4C4F434B;
+    GPIO_PORTB_CR_R = 0x7F;
+    GPIO_PORTB_AMSEL_R = 0x80;
+    GPIO_PORTB_PCTL_R = 0x00000000;
+    GPIO_PORTB_DIR_R = 0xFF;
+    GPIO_PORTB_AFSEL_R = 0x00;
+    GPIO_PORTB_PUR_R = 0xFF;
+    GPIO_PORTB_DEN_R = 0xFF;
     SysCtlDelay(delay1);
 }
 
@@ -66,7 +64,6 @@ int LCD_cmd(uint8_t pins, uint8_t command){
     SysCtlDelay(delay1);
     GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
     SysCtlDelay(delay1);
-
     return 0;
 }
 
@@ -76,7 +73,6 @@ int LCD_cmd(uint8_t pins, uint8_t command){
  * Example: letter 'H' is encoded as (see datasheet)
  *  0100 for D7-D4: 0x4
  *  1000 for D3-D0: 0x8
- *
  */
 int LCD_write(uint8_t pins, uint8_t symbol){
     //       D7|D6|D5|D4|x|EN|RW|RS
@@ -84,56 +80,48 @@ int LCD_write(uint8_t pins, uint8_t symbol){
     uint8_t LSB = (symbol & 0x0F) << 4;
     LCD_cmd( D7|D6|D5|D4        |RS,  MSB|0x01 );    // Also, set RS to 1 (data mode)
     LCD_cmd( D7|D6|D5|D4        |RS,  LSB|0x01 );
-
     return 0;
 }
 
 
 /******************************************************************************
+ * An internal reset circuit automatically initializes LCD when power is on.
+ * Still, I think it's much better not to rely on it and initialize it
+ * explicitly (by instruction):
+ * "If the power supply conditions for correctly operating the internal reset
+ *  circuit are not met, initialization by instructions becomes necessary."
  *
- * An internal reset circuit automatically initializes the HD44780U when the
- *  power is turned on.
- * When MCU was reset but LCD remains powered, init by instruction is needed.
- *
- * Cold Power-On Reset
- * HD44780U is initialized by the internal reset circuit.
- *
+ *  //RS 0 inst, 1 data
+ *  //RW 0 write, 1 read
  * */
 int LCD_init(){
-//RS 0 inst, 1 data
-//RW 0 write, 1 read
 
-    // Warm POR (Power-On Reset).
-    // HD44780U is initialized by instruction.
+    // LCD is initialized by instruction (Table 12)
     SysCtlDelay(delay1*10); // 4.1 ms
     LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x30 );
     // 100 us (microseconds)
     LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x30 );
 
-
-    // Cold Power-On Reset.
-    // HD44780U is initialized by the internal reset circuit.
-/* Function set */
+    // LCD is initialized by the internal reset circuit.
+    // Set tp 4-bit operation. In this case, operation is handled as 8 bits by initialization,
+    // and only this instruction completes with one write.
     //       D7|D6|D5|D4|x|EN|RW|RS
-    LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x20 );     //This instruction is performed as 8-bit. // RS: 0 for instructions, 1 for data
-
-/* Now, LCD executes each 2nd command */
-/* Function set */
-    LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x20 );     //Set MSB 4 bits.
-    LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x00 );     //Set LSB 4 bits.
-
-/* Display on */
+    LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x20 );
+    // Now LCD executes each 2nd commands. Need to set 4-bit again, now this way.
+    // Set 4-bit operation, 1-line display, 5x8 font
+    LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x20 );     // Set MSB 4 bits
+    LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x00 );     // Set LSB 4 bits
+    // Turn on display and cursor
     LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x00 );
     LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0xE0 );
-
-/* Entry mode on */
+    // Entry mode on
     LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x00 );
     LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x60 );
 
+//TODO the foolowing actually should be in different functions like LCD_clear, LCD_setcursor etc.
 /* Cursor or display shift*/
-//    LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x10 );
-//    LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0xC0 );
-
+    LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x10 );
+    LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0xC0 );
 
 /* Clear display */
     LCD_cmd( D7|D6|D5|D4  |EN|RW|RS,  0x00 );
@@ -158,8 +146,7 @@ int main(void)
     LCD_init();
 
     LCD_write ( D7|D6|D5|D4,  0x48);
-    LCD_write ( D7|D6|D5|D4,  0x4A);
-
+    LCD_write ( D7|D6|D5|D4,  0x49);
 
     while(1){
         SW1_state = GPIOPinRead( GPIO_PORTF_BASE, GPIO_PIN_0 );

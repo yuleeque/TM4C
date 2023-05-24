@@ -12,6 +12,7 @@
 
 
 #define delay1 10000
+
 #define RS GPIO_PIN_0              // 0x00000001  // GPIO pin 0
 #define RW GPIO_PIN_1              // 0x00000002  // GPIO pin 1
 #define EN GPIO_PIN_2              // 0x00000004  // GPIO pin 2
@@ -46,12 +47,12 @@ void PortB_init(void){
     SysCtlDelay(delay1);
     GPIO_PORTB_LOCK_R = 0x4C4F434B;
     GPIO_PORTB_CR_R = 0xF7;
-    GPIO_PORTB_AMSEL_R = 0x80;
+    GPIO_PORTB_AMSEL_R = 0x00;
     GPIO_PORTB_PCTL_R = 0x00000000;
-    GPIO_PORTB_DIR_R = 0xFF;
+    GPIO_PORTB_DIR_R = 0xF7;
     GPIO_PORTB_AFSEL_R = 0x00;
-    GPIO_PORTB_PUR_R = 0xFF;
-    GPIO_PORTB_DEN_R = 0xFF;
+    GPIO_PORTB_PUR_R = 0xF7;
+    GPIO_PORTB_DEN_R = 0xF7;
 }
 
 
@@ -137,13 +138,13 @@ int LCD_init(){
     return 0;
 }
 
-int SW1_state = 0;
-int SW2_state = 0;
+//int SW1_state = 0;
+//int SW2_state = 0;
+
 uint32_t ui32Period;
 
 int main(void)
 {
-
 
     // datasheet 5.2.5, Table 5-4
     // To clock the system from the PLL, use \b SYSCTL_USE_PLL \b | \b SYSCTL_OSC_MAIN,
@@ -158,7 +159,7 @@ int main(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
     // Calculate delay
-    ui32Period = SysCtlClockGet() / 1000 / * 5;  // LCD datasheet: wait more than 4.1ms
+    ui32Period = SysCtlClockGet() / 1000 * 5;  // LCD datasheet: wait more than 4.1ms
     TimerLoadSet(TIMER0_BASE, TIMER_A, ui32Period -1);
     // Interrupt enable
     IntEnable(INT_TIMER0A);
@@ -167,29 +168,13 @@ int main(void)
     // Timer enable
     TimerEnable(TIMER0_BASE, TIMER_A);
 
-
-
-
     LCD_init();
-
     LCD_write ( D7|D6|D5|D4,  0x48);
     LCD_write ( D7|D6|D5|D4,  0x49);
 
 
-
     while(1){
-        SW1_state = GPIOPinRead( GPIO_PORTF_BASE, GPIO_PIN_0 );
-        SW2_state = GPIOPinRead( GPIO_PORTF_BASE, GPIO_PIN_1 );;
 
-//        if (SW1_state == 1 || SW2_state == 1) {
-//            GPIOPinWrite( GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0x08 );
-//        }
-//        else {
-//            GPIOPinWrite( GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0x04 );
-//        }
-
-
-      //  for (int i; i <= 1000000000; i++)
 
     }
 }
@@ -198,24 +183,14 @@ int main(void)
 void Timer0IntHandler(void){
     // Clear the timer interrupt
     TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-    // Read the current state of the GPIO pin and
-    // write back the opposite state
-//    if(GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_2))
-//    {
-//        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0);
-//    }
-//    else
-//    {
-//        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, 4);
-//    }
-    if (GPIOPinRead( GPIO_PORTF_BASE, GPIO_PIN_0 )) {
+
+    // 0x02 red
+    // 0x08 green
+    // 0x04 blue
+    if(GPIOPinRead( GPIO_PORTF_BASE, GPIO_PIN_0 )){
         GPIOPinWrite( GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0x08 );
     }
-    else {
-        GPIOPinWrite( GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0x02 );
-    }
-
-    if (GPIOPinRead( GPIO_PORTF_BASE, GPIO_PIN_1 )) {
+    else if(GPIOPinRead( GPIO_PORTF_BASE, GPIO_PIN_4 )){
         GPIOPinWrite( GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 0x04 );
     }
     else {

@@ -119,7 +119,7 @@ int lcd(uint16_t data){
 int lcd_8bit(uint16_t data){
     GPIOPinWrite(GPIO_PORTB_BASE, RS|RW,        data >> 8 );
     // MSB and LSB simultaneously but DB3-0 are Don't Cares so just D7-4
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  data & 0x0F );
+    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  data & 0x0F0 );
     SysCtlDelay(delay1);
     GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
     SysCtlDelay(delay1);

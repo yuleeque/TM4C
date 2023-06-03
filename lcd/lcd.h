@@ -3,8 +3,8 @@
 
 #define delay1 10000
 
-#define RS GPIO_PIN_0              // 0x00000001  // GPIO pin 0
-#define RW GPIO_PIN_1              // 0x00000002  // GPIO pin 1
+#define RW GPIO_PIN_0              // 0x00000001  // GPIO pin 0
+#define RS GPIO_PIN_1              // 0x00000002  // GPIO pin 1
 #define EN GPIO_PIN_2              // 0x00000004  // GPIO pin 2
 //#define PIN3 GPIO_PIN_3                 // 0x00000008  // GPIO pin 3 (not used)
 #define D4 GPIO_PIN_4              // 0x00000010  // GPIO pin 4
@@ -24,8 +24,8 @@
 
 void PortF_init(void);
 void PortB_init(void);
-int LCD_cmd(uint8_t data);
-int LCD_cmd_8bit(uint8_t data);
+int LCD_cmd(uint16_t data);
+int LCD_cmd_8bit(uint16_t data);
 int LCD_write(uint8_t data);
 int LCD_isBusy(uint8_t data);
 int LCD_init();
@@ -36,18 +36,18 @@ int LCD_init();
 
 
 /* FULL TABLE *****************************************************************
- *                           RS RW | DB7 DB6 DB5 DB4  |  DB3 DB2 DB1 DB0
- * Clear display              0  0 |  0   0   0   0   |   0   0   0   1
- * Return home                0  0 |  0   0   0   0   |   0   0   1   -
- * Entry mode set             0  0 |  0   0   0   0   |   0   1  I/D  S
- * Display on/off control     0  0 |  0   0   0   0   |   1   D   C   B
- * Cursor/display shift       0  0 |  0   0   0   1   |  S/C R/L  -   -
- * Function set               0  0 |  0   0   1   DL  |   N   F   -   -
- * Set CGRAM address          0  0 |  0   1  ACG ACG  |  ACG ACG ACG ACG
- * Set DDRAM address          0  0 |  1  ADD ADD ADD  |  ADD ADD ADD ADD
- * Read busy flag & address   0  1 |  BF  AC  AC  AC  |   AC  AC  AC  AC
- * Write data to CG or DDRAM  1  0 | <......... write | data ..........>
- * Read data from CG or DDRAM 1  1 | <......... read  | data ..........>
+ *                             RS RW | DB7 DB6 DB5 DB4  |  DB3 DB2 DB1 DB0
+ * Clear display                0  0 |  0   0   0   0   |   0   0   0   1
+ * Return home                  0  0 |  0   0   0   0   |   0   0   1   -
+ * Entry mode set               0  0 |  0   0   0   0   |   0   1  I/D  S
+ * Display on/off control       0  0 |  0   0   0   0   |   1   D   C   B
+ * Cursor/display shift         0  0 |  0   0   0   1   |  S/C R/L  -   -
+ * Function set                 0  0 |  0   0   1   DL  |   N   F   -   -
+ * Set CGRAM address            0  0 |  0   1  ACG ACG  |  ACG ACG ACG ACG
+ * Set DDRAM address            0  0 |  1  ADD ADD ADD  |  ADD ADD ADD ADD
+ * Read busy flag & address     0  1 |  BF  AC  AC  AC  |   AC  AC  AC  AC
+ * Write data to CG or DDRAM    1  0 | <......... write | data ..........>
+ * Read data from CG or DDRAM   1  1 | <......... read  | data ..........>
  *
  * I/D = 1: Increment, I/D = 0: Decrement
  * S = 1: Accompanies display shift, S = 0: No shift
@@ -74,6 +74,6 @@ int LCD_init();
  *      Execution time changes when frequency changes
  *      Example: When fCP or fOSC is 250 kHz:  37us * 270/250 = 40us
  *
- *   PIN    DB7 DB6 DB5 DB4 -x- EN RW RS
- *   bit     7   6   5   4   3   2  1  0
+ *      PIN    DB7 DB6 DB5 DB4 -x- EN RW RS
+ *      bit     7   6   5   4   3   2  1  0
  *****************************************************************************/

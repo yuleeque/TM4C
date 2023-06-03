@@ -50,49 +50,55 @@ void PortB_init(void){
 }
 
 
-/******************************************************************************
- * Instructions table this function executes (Table 6):
- *                            DB7 DB6 DB5 DB4 DB3 DB2 DB1 DB0    time (fOSC = 270kHz)
- * Clear display                0   0   0   0   0   0   0   1      1.52 ms
- * Return home                  0   0   0   0   0   0   1   -      37 us
- * Entry mode set               0   0   0   0   0   1  I/D  S      37 us
- * Display on/off control       0   0   0   0   1   D   C   B      37 us
- * Cursor/display shift         0   0   0   1  S/C R/L  -   -      37 us
- * Function set                 0   0   1   DL  N   F   -   -      37 us
- * Set CGRAM address            0   1  ACG ACG ACG ACG ACG ACG     37 us
- * Set DDRAM address            1  ADD ADD ADD ADD ADD ADD ADD     37 us
+/* FULL TABLE *****************************************************************
+ *                             RS RW | DB7 DB6 DB5 DB4  |  DB3 DB2 DB1 DB0
+ * Clear display                0  0 |  0   0   0   0   |   0   0   0   1
+ * Return home                  0  0 |  0   0   0   0   |   0   0   1   -
+ * Entry mode set               0  0 |  0   0   0   0   |   0   1  I/D  S
+ * Display on/off control       0  0 |  0   0   0   0   |   1   D   C   B
+ * Cursor/display shift         0  0 |  0   0   0   1   |  S/C R/L  -   -
+ * Function set                 0  0 |  0   0   1   DL  |   N   F   -   -
+ * Set CGRAM address            0  0 |  0   1  ACG ACG  |  ACG ACG ACG ACG
+ * Set DDRAM address            0  0 |  1  ADD ADD ADD  |  ADD ADD ADD ADD
+ * Read busy flag & address     0  1 |  BF  AC  AC  AC  |   AC  AC  AC  AC
+ * Write data to CG or DDRAM    1  0 | <......... write | data ..........>
+ * Read data from CG or DDRAM   1  1 | <......... read  | data ..........>
  *
- * I/D = 1: Increment
- * I/D = 0: Decrement
- * S = 1: Accompanies display shift
- * S/C = 1: Display shift
- * S/C = 0: Cursor move
- * R/L = 1: Shift to the right
- * R/L = 0: Shift to the left
- * DL = 1: 8 bits
- * DL = 0: 4 bits
- * N = 1: 2 lines
- * N = 0: 1 line
- * F = 1: 5 x 10 dots
- * F = 0: 5 x 8 dots
+ * I/D = 1: Increment, I/D = 0: Decrement
+ * S = 1: Accompanies display shift, S = 0: No shift
+ *
+ * D = 1: Display on
+ * C = 1: Cursor on
+ * B = 1: Blink on
+ *
+ * S/C = 1: Display shift, S/C = 0: Cursor move
+ * R/L = 1: Shift to the right, R/L = 0: Shift to the left
+ *
+ * DL = 1: 8 bits, DL = 0: 4 bits
+ * N = 1: 2 lines, N = 0: 1 line
+ * F = 1: 5 x 10 dots, F = 0: 5 x 8 dots
+ *
+ * BF = 1: Internally operating, BF = 0: Instructions acceptable
  *
  * Notes:
  *      DDRAM: Display data RAM
  *      CGRAM: Character generator RAM
  *      ACG: CGRAM address
  *      ADD: DDRAM address (corresponds to cursor address)
+ *      AC: Address counter used for both DD and CGRAM addresses
  *      Execution time changes when frequency changes
  *      Example: When fCP or fOSC is 250 kHz:  37us * 270/250 = 40us
  *
- *   PIN    DB7 DB6 DB5 DB4 -x- EN RW RS
- *   bit     7   6   5   4   3   2  1  0
+ *              PIN    DB7 DB6 DB5 DB4 -x- EN RS RW
+ *              bit     7   6   5   4   3   2  1  0
  *****************************************************************************/
-int LCD_cmd(uint8_t data){
-    uint8_t MSB =  data & 0xF0;
-    uint8_t LSB = (data & 0x0F) << 4;
+int LCD_cmd(uint16_t data){
+
+    // set Read-or-Write and Instruction-or-Data
+    GPIOPinWrite(GPIO_PORTB_BASE, RS|RW,        data >> 8 );
 
     // MSB
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4|RS,  MSB|0x00 );  // RS to 0 (instruction mode), RW to 0 (write)
+    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  data & 0x0F0);
     SysCtlDelay(delay1);
     GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
     SysCtlDelay(delay1);
@@ -100,7 +106,7 @@ int LCD_cmd(uint8_t data){
     SysCtlDelay(delay1);
 
     // LSB
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4|RS,  LSB|0x00 );
+    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4, (data & 0x00F) << 4 );
     SysCtlDelay(delay1);
     GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
     SysCtlDelay(delay1);
@@ -110,8 +116,11 @@ int LCD_cmd(uint8_t data){
 }
 
 // Used at the beginning due to default 8-bit interface
-int LCD_cmd_8bit(uint8_t data){
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4|RS,  data|0x00 ); // RS to 0 (instruction mode), RW to 0 (write)
+int LCD_cmd_8bit(uint16_t data){
+    GPIOPinWrite(GPIO_PORTB_BASE, RS|RW,        data >> 8 );
+
+    // MSB and LSB simultaneously but DB3-0 are Don't Cares so just D7-4
+    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  data & 0x0F );
     SysCtlDelay(delay1);
     GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
     SysCtlDelay(delay1);
@@ -120,97 +129,7 @@ int LCD_cmd_8bit(uint8_t data){
     return 0;
 }
 
-/******************************************************************************
- * Instruction (the only one) this function executes (Table 6):
- *                            DB7 DB6 DB5 DB4 DB3 DB2 DB1 DB0    time (fOSC = 270kHz)
- * Read busy flag & address    BF  AC AC AC AC AC AC AC AC AC      0 us
- *
- * BF = 1: Internally operating
- * BF = 0: Instructions acceptable
- * AC: Address counter used for both DD and CGRAM addresses
- *
- * Execution time changes when frequency changes
- * Example: When fCP or fOSC is 250 kHz:  37us * 270/250 = 40us
- *
- *   PIN    DB7 DB6 DB5 DB4 -x- EN RW RS
- *   bit     7   6   5   4   3   2  1  0
- *****************************************************************************/
-int LCD_isBusy(uint8_t data){
 
-    return 0;
-}
-
-
-/******************************************************************************
- * Instructions table this function executes (Table 6):
- *                             DB7 DB6 DB5 DB4 DB3 DB2 DB1 DB0    time (fOSC = 270kHz)
- * Write data to CG or DDRAM   <..........write data.........>     37 us
- *
- * Notes:
- *      DDRAM: Display data RAM
- *      CGRAM: Character generator RAM
- *      ACG: CGRAM address
- *      ADD: DDRAM address (corresponds to cursor address)
- *      Execution time changes when frequency changes
- *      Example: When fCP or fOSC is 250 kHz:  37us * 270/250 = 40us
- *
- *   PIN    DB7 DB6 DB5 DB4 -x- EN RW RS
- *   bit     7   6   5   4   3   2  1  0
- *****************************************************************************/
-int LCD_write(uint8_t data){
-    uint8_t MSB =  data & 0xF0;
-    uint8_t LSB = (data & 0x0F) << 4;
-
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4|RS,  MSB|0x01 );  // RS to 1 (data mode), RW to 0 (write)
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4|RS,  LSB|0x01 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-    return 0;
-}
-
-/******************************************************************************
- * Instructions table this function executes (Table 6):
- * Use DB7..DB0 to form an argument you need.
- *                               DB7 DB6 DB5 DB4 DB3 DB2 DB1 DB0    time (fOSC = 270kHz)
- * Read data from CG or DDRAM    <..........read data..........>     37 us
- *
- * Notes:
- *      DDRAM: Display data RAM
- *      CGRAM: Character generator RAM
- *      Execution time changes when frequency changes
- *      Example: When fCP or fOSC is 250 kHz:  37us * 270/250 = 40us
- *
- *   PIN    DB7 DB6 DB5 DB4 -x- EN RW RS
- *   bit     7   6   5   4   3   2  1  0
- *****************************************************************************/
-int LCD_read(uint8_t data){
-    uint8_t MSB =  data & 0xF0;
-    uint8_t LSB = (data & 0x0F) << 4;
-
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4|RS,  MSB|0x03 );  // RS to 1 (data mode), RW to 1 (read)
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-
-    GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4|RS,  LSB|0x03 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x04 );
-    SysCtlDelay(delay1);
-    GPIOPinWrite(GPIO_PORTB_BASE, EN,  0x00 );
-    SysCtlDelay(delay1);
-    return 0;
-}
 
 /******************************************************************************
  * An internal reset circuit automatically initializes LCD when power is on.
@@ -220,17 +139,16 @@ int LCD_read(uint8_t data){
  * */
 int LCD_init(){
     // Interface is 8 bit long by default.
-    LCD_cmd_8bit( 0x30 );
-    LCD_cmd_8bit( 0x30 );
-    LCD_cmd_8bit( 0x30 );
-    LCD_cmd_8bit( 0x20 );
+    LCD_cmd_8bit( 0x030 );
+    LCD_cmd_8bit( 0x030 );
+    LCD_cmd_8bit( 0x030 );
+    LCD_cmd_8bit( 0x020 );
 
     // Interface is 4 bits long now.
-    LCD_cmd( 0x20 );    // Set 4-bit operation, 1-line display, 5x8 font
-    LCD_cmd( 0x0F );    // Turn on/off control
-//    LCD_cmd( 0x0B );    // Turn on/off control
-    LCD_cmd( 0x01 );    // Display clear
-    LCD_cmd( 0x06 );    // Entry mode set
+    LCD_cmd( 0x020 );    // Set 4-bit operation, 1-line display, 5x8 font
+    LCD_cmd( 0x00F );    // Turn on/off control
+    LCD_cmd( 0x001 );    // Display clear
+    LCD_cmd( 0x006 );    // Entry mode set
 
 //TODO the foolowing actually should be in different functions like LCD_clear, LCD_setcursor etc.
 /* Cursor or display shift*/

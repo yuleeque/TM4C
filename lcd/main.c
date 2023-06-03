@@ -13,7 +13,8 @@
 #define GREEN   0x00000008
 #define SW2     0x00000010
 
-#define writeData 0x200 |
+
+#define CLEAR 0x1
 
 uint32_t ui32ClockFrequency;
 
@@ -27,9 +28,14 @@ int main(void)
     PortB_init();
     ui32ClockFrequency = SysCtlClockGet();
     LCD_init();
-    LCD_cmd( writeData 'O' );
-    LCD_cmd( 0x200 | 'K' );
-    //LCD_cmd( CLEAR_DISPLAY );
+    lcd( dataWrite 'B' );
+    lcd( dataWrite 'Y' );
+    lcd( dataWrite 'E' );
+    lcd( cmdWrite CLEAR );
+    lcd( dataWrite 'O' );
+    lcd( dataWrite 'K' );
+
+    //lcd( CLEAR_DISPLAY );
 
     // RED   GREEN  BLUE
     // 0x02  0x08   0x04

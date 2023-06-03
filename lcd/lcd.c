@@ -92,7 +92,7 @@ void PortB_init(void){
  *              PIN    DB7 DB6 DB5 DB4 -x- EN RS RW
  *              bit     7   6   5   4   3   2  1  0
  *****************************************************************************/
-int LCD_cmd(uint16_t data){
+int lcd(uint16_t data){
 
     // set Read-or-Write and Instruction-or-Data
     GPIOPinWrite(GPIO_PORTB_BASE, RS|RW,        data >> 8 );
@@ -116,9 +116,8 @@ int LCD_cmd(uint16_t data){
 }
 
 // Used at the beginning due to default 8-bit interface
-int LCD_cmd_8bit(uint16_t data){
+int lcd_8bit(uint16_t data){
     GPIOPinWrite(GPIO_PORTB_BASE, RS|RW,        data >> 8 );
-
     // MSB and LSB simultaneously but DB3-0 are Don't Cares so just D7-4
     GPIOPinWrite(GPIO_PORTB_BASE, D7|D6|D5|D4,  data & 0x0F );
     SysCtlDelay(delay1);
@@ -139,24 +138,24 @@ int LCD_cmd_8bit(uint16_t data){
  * */
 int LCD_init(){
     // Interface is 8 bit long by default.
-    LCD_cmd_8bit( 0x030 );
-    LCD_cmd_8bit( 0x030 );
-    LCD_cmd_8bit( 0x030 );
-    LCD_cmd_8bit( 0x020 );
+    lcd_8bit( cmdWrite 0x30 );
+    lcd_8bit( cmdWrite 0x30 );
+    lcd_8bit( cmdWrite 0x30 );
+    lcd_8bit( cmdWrite 0x20 );
 
     // Interface is 4 bits long now.
-    LCD_cmd( 0x020 );    // Set 4-bit operation, 1-line display, 5x8 font
-    LCD_cmd( 0x00F );    // Turn on/off control
-    LCD_cmd( 0x001 );    // Display clear
-    LCD_cmd( 0x006 );    // Entry mode set
+    lcd( cmdWrite 0x20 );    // Set 4-bit operation, 1-line display, 5x8 font
+    lcd( cmdWrite 0x0F );    // Turn on/off control
+    lcd( cmdWrite 0x01 );    // Display clear
+    lcd( cmdWrite 0x06 );    // Entry mode set
 
 //TODO the foolowing actually should be in different functions like LCD_clear, LCD_setcursor etc.
 /* Cursor or display shift*/
-    //LCD_cmd( 0x10 );
-    //LCD_cmd( 0xC0 );
+    //lcd( 0x10 );
+    //lcd( 0xC0 );
 
 /* Return home */
-    //LCD_cmd( 0x00 );
-    //LCD_cmd( 0x20 );
+    //lcd( 0x00 );
+    //lcd( 0x20 );
     return 0;
 }

@@ -13,21 +13,20 @@
 #define D7 GPIO_PIN_7              // 0x00000080  // GPIO pin 7
 
 
-
+#define cmdWrite    0x000 |
+#define cmdRead     0x100 |
+#define dataWrite   0x200 |
+#define dataRead    0x300 |
 
 
 #define CLEAR_DISPLAY 0x01
 #define DISPLAY_OFF 0x08
 
 
-
-
 void PortF_init(void);
 void PortB_init(void);
-int LCD_cmd(uint16_t data);
-int LCD_cmd_8bit(uint16_t data);
-int LCD_write(uint8_t data);
-int LCD_isBusy(uint8_t data);
+int lcd(uint16_t data);
+int lcd_8bit(uint16_t data);
 int LCD_init();
 
 #endif

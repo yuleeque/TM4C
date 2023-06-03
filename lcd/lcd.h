@@ -34,39 +34,36 @@ int LCD_init();
 
 
 
-// FULL TABLE (to keep as a copy just in case)
-/******************************************************************************
- * Instructions table LCD_cmd() follows (Table 6).
- * Skip RS and RW, they are already set in corresponding functions.
- * Use DB7..DB0 to form an argument you need.
- *                           RS RW | DB7 DB6 DB5 DB4 DB3 DB2 DB1 DB0    time (fOSC = 270kHz)
- * Clear display              0  0 |  0   0   0   0   0   0   0   1      1.52 ms
- * Return home                0  0 |  0   0   0   0   0   0   1   -      37 us
- * Entry mode set             0  0 |  0   0   0   0   0   1  I/D  S      37 us
- * Display on/off control     0  0 |  0   0   0   0   1   D   C   B      37 us
- * Cursor/display shift       0  0 |  0   0   0   1  S/C R/L  -   -      37 us
- * Function set               0  0 |  0   0   1   DL  N   F   -   -      37 us
- * Set CGRAM address          0  0 |  0   1  ACG ACG ACG ACG ACG ACG     37 us
- * Set DDRAM address          0  0 |  1  ADD ADD ADD ADD ADD ADD ADD     37 us
- * Read busy flag & address   0  1 |  BF  AC AC AC AC AC AC AC AC AC      0 us
- * Write data to CG or DDRAM  1  0 | <..........write data.........>     37 us
- * Read data from CG or DDRAM 1  1 | <..........read data..........>     37 us
+
+/* FULL TABLE *****************************************************************
+ *                           RS RW | DB7 DB6 DB5 DB4  |  DB3 DB2 DB1 DB0
+ * Clear display              0  0 |  0   0   0   0   |   0   0   0   1
+ * Return home                0  0 |  0   0   0   0   |   0   0   1   -
+ * Entry mode set             0  0 |  0   0   0   0   |   0   1  I/D  S
+ * Display on/off control     0  0 |  0   0   0   0   |   1   D   C   B
+ * Cursor/display shift       0  0 |  0   0   0   1   |  S/C R/L  -   -
+ * Function set               0  0 |  0   0   1   DL  |   N   F   -   -
+ * Set CGRAM address          0  0 |  0   1  ACG ACG  |  ACG ACG ACG ACG
+ * Set DDRAM address          0  0 |  1  ADD ADD ADD  |  ADD ADD ADD ADD
+ * Read busy flag & address   0  1 |  BF  AC  AC  AC  |   AC  AC  AC  AC
+ * Write data to CG or DDRAM  1  0 | <......... write | data ..........>
+ * Read data from CG or DDRAM 1  1 | <......... read  | data ..........>
  *
- * I/D = 1: Increment
- * I/D = 0: Decrement
- * S = 1: Accompanies display shift
- * S/C = 1: Display shift
- * S/C = 0: Cursor move
- * R/L = 1: Shift to the right
- * R/L = 0: Shift to the left
- * DL = 1: 8 bits
- * DL = 0: 4 bits
- * N = 1: 2 lines
- * N = 0: 1 line
- * F = 1: 5 x 10 dots
- * F = 0: 5 x 8 dots
- * BF = 1: Internally operating
- * BF = 0: Instructions acceptable
+ * I/D = 1: Increment, I/D = 0: Decrement
+ * S = 1: Accompanies display shift, S = 0: No shift
+ *
+ * D = 1: Display on
+ * C = 1: Cursor on
+ * B = 1: Blink on
+ *
+ * S/C = 1: Display shift, S/C = 0: Cursor move
+ * R/L = 1: Shift to the right, R/L = 0: Shift to the left
+ *
+ * DL = 1: 8 bits, DL = 0: 4 bits
+ * N = 1: 2 lines, N = 0: 1 line
+ * F = 1: 5 x 10 dots, F = 0: 5 x 8 dots
+ *
+ * BF = 1: Internally operating, BF = 0: Instructions acceptable
  *
  * Notes:
  *      DDRAM: Display data RAM

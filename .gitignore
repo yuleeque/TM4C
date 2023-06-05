@@ -1,4 +1,6 @@
 stuff_to_ignore/
+lcd/Debug/
+
 
 # Prerequisites
 *.d

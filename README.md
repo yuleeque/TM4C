@@ -8,8 +8,13 @@ For the reason of saving time there is no schematics of pin connections but just
 They aren't really necessary, to be honest, but still.
 
 
- ![breadboard](/assets/breadboard.png)
- ![j1](/assets/j1.png)
- ![j2](/assets/j2.png)
- ![j3](/assets/j3.png)
- ![j4](/assets/j4.png)
+ ![breadboard](/assets/breadboard.jpg)
+
+ ![j1](/assets/J1.jpg)
+
+ ![j2](/assets/J2.jpg)
+
+ ![j3](/assets/J3.jpg)
+
+ ![j4](/assets/J4.jpg)
+

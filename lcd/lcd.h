@@ -22,17 +22,17 @@
 /* finding more-or-less consistent function names
  *
  * void lcd_clear(void)
- * void lcd_home(void)
+ * void lcd_return_home(void)
  * void lcd_entry_mode_left(int steps)
  * void lcd_entry_mode_right(int steps)
  * void lcd_display_on(bool)
  * void lcd_cursor_on(bool)
  * void lcd_cursor_blink(bool)
- * void lcd_cursor_move_left(int steps)  -->      \
- * void lcd_cursor_move_right(int steps) -->       \-- to be wrapped into lcd_setCursor or lcd_cursor_set
+ * void lcd_cursor_left(int steps)  -->      \
+ * void lcd_cursor_right(int steps) -->       \-- to be wrapped into lcd_setCursor or lcd_cursor_set
  *                                             \-- OR... keep the original two and add lcd_move_up, lcd_move_down
- * void lcd_display_shift_left(int steps)
- * void lcd_display_shift_right(int steps)
+ * void lcd_display_left(int steps)
+ * void lcd_display_right(int steps)
  * void lcd_settings(int interfaceDataLength,
  *              int numOfLines,
  *              int charFont)

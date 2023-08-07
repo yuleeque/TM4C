@@ -3,21 +3,19 @@
 
 #define delay1 10000
 
-#define RW GPIO_PIN_0              // 0x00000001  // GPIO pin 0
-#define RS GPIO_PIN_1              // 0x00000002  // GPIO pin 1
-#define EN GPIO_PIN_2              // 0x00000004  // GPIO pin 2
-//#define PIN3 GPIO_PIN_3                 // 0x00000008  // GPIO pin 3 (not used)
-#define D4 GPIO_PIN_4              // 0x00000010  // GPIO pin 4
-#define D5 GPIO_PIN_5              // 0x00000020  // GPIO pin 5
-#define D6 GPIO_PIN_6              // 0x00000040  // GPIO pin 6
-#define D7 GPIO_PIN_7              // 0x00000080  // GPIO pin 7
-
+#define RW GPIO_PIN_0              // 0x00000001
+#define RS GPIO_PIN_1              // 0x00000002
+#define EN GPIO_PIN_2              // 0x00000004
+//#define PIN3 GPIO_PIN_3          // 0x00000008 (not used)
+#define D4 GPIO_PIN_4              // 0x00000010
+#define D5 GPIO_PIN_5              // 0x00000020
+#define D6 GPIO_PIN_6              // 0x00000040
+#define D7 GPIO_PIN_7              // 0x00000080
 
 #define cmdWrite    0x000 |
 #define cmdRead     0x100 |
 #define dataWrite   0x200 |
 #define dataRead    0x300 |
-
 
 /* finding more-or-less consistent function names
  *
@@ -36,28 +34,22 @@
  * void lcd_settings(int interfaceDataLength,
  *              int numOfLines,
  *              int charFont)
- * void lcd_CGRAM_set(6 bit wide arg)
- * void lcd_DDRAM_set(7 bit wide arg)
+ * void lcd_CGRAM_address(6 bit wide arg)
+ * void lcd_DDRAM_address(7 bit wide arg)
  *      lcd_RAM_read(void)
  *      lcd_RAM_write(void)
  *      lcd_busyFlag_read(void)
  */
 
-
 #define CLEAR_DISPLAY 0x01
 #define DISPLAY_OFF 0x08
 
-
-void PortF_init(void);
 void PortB_init(void);
 int lcd(uint16_t data);
 int lcd_8bit(uint16_t data);
 int LCD_init();
 
 #endif
-
-
-
 
 /* FULL TABLE *****************************************************************
  *                             RS RW | DB7 DB6 DB5 DB4  |  DB3 DB2 DB1 DB0
@@ -98,6 +90,6 @@ int LCD_init();
  *      Execution time changes when frequency changes
  *      Example: When fCP or fOSC is 250 kHz:  37us * 270/250 = 40us
  *
- *      PIN    DB7 DB6 DB5 DB4 -x- EN RW RS
- *      bit     7   6   5   4   3   2  1  0
+ *              PIN    DB7 DB6 DB5 DB4 -x- EN RS RW
+ *              bit     7   6   5   4   3   2  1  0
  *****************************************************************************/

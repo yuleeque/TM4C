@@ -21,26 +21,26 @@
 
 /* finding more-or-less consistent function names
  *
- * lcd_clear(void)
- * lcd_home(void)
- * lcd_entry_mode_left(int steps)
- * lcd_entry_mode_right(int steps)
- * lcd_display_on(bool)
- * lcd_cursor_on(bool)
- * lcd_cursor_blink(bool)
- * lcd_cursor_move_left(int steps)  -->      \
- * lcd_cursor_move_right(int steps) -->       \-- to be wrapped into lcd_setCursor or lcd_cursor_set
+ * void lcd_clear(void)
+ * void lcd_home(void)
+ * void lcd_entry_mode_left(int steps)
+ * void lcd_entry_mode_right(int steps)
+ * void lcd_display_on(bool)
+ * void lcd_cursor_on(bool)
+ * void lcd_cursor_blink(bool)
+ * void lcd_cursor_move_left(int steps)  -->      \
+ * void lcd_cursor_move_right(int steps) -->       \-- to be wrapped into lcd_setCursor or lcd_cursor_set
  *                                             \-- OR... keep the original two and add lcd_move_up, lcd_move_down
- * lcd_display_shift_left(int steps)
- * lcd_display_shift_right(int steps)
- * lcd_settings(int interfaceDataLength,
+ * void lcd_display_shift_left(int steps)
+ * void lcd_display_shift_right(int steps)
+ * void lcd_settings(int interfaceDataLength,
  *              int numOfLines,
  *              int charFont)
- * lcd_CGRAM_set(6 bit wide arg)
- * lcd_DDRAM_set(7 bit wide arg)
- * lcd_RAM_read(void)
- * lcd_RAM_write(void)
- * lcd_busyFlag_read(void)
+ * void lcd_CGRAM_set(6 bit wide arg)
+ * void lcd_DDRAM_set(7 bit wide arg)
+ *      lcd_RAM_read(void)
+ *      lcd_RAM_write(void)
+ *      lcd_busyFlag_read(void)
  */
 
 
